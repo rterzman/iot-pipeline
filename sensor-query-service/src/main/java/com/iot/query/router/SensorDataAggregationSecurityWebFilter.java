@@ -1,7 +1,5 @@
 package com.iot.query.router;
 
-import static org.apache.commons.lang3.BooleanUtils.isFalse;
-
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,7 +27,7 @@ public class SensorDataAggregationSecurityWebFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().toString();
-        if (isSensorPath(path) && isFalse(isAuthorized(request))) {
+        if (isSensorPath(path) && !isAuthorized(request)) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return Mono.empty();
         }
