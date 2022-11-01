@@ -152,6 +152,7 @@ The most convenient approach is to use an OAuth2 framework + Spring Security. It
 * Move eventbus codebase to a separate lib which can be used independently for each IoT Gateway agent
 * Create a separate workflow for fulfilling the sensors dictionary
 * Create a separate implementation based on data streaming platform
+* Integration test coverage
 
 # How To Run the project
 ## System requirements
