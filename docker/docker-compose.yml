@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.1.1
+    container_name: "iot-zookeeper"
+    networks:
+      - "default"
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+  kafka:
+    image: confluentinc/cp-kafka:6.1.1
+    container_name: "iot-kafka"
+    networks:
+      - "default"
+    ports:
+      - "9092:9092"
+    volumes:
+      - ./mp-kafka-data:/confluentinc-kafka
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_CREATE_TOPICS: iot_pipeline_data:1:1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+    depends_on:
+      - zookeeper
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg13
+    container_name: iot-timescaledb
+    networks:
+      - "default"
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - TS_TUNE_MEMORY=4GB
+      - TS_TUNE_NUM_CPUS=2
+    volumes:
+      - ./timeseriesdb_init.sql:/docker-entrypoint-initdb.d/1-init.sql
+      - ./postgres-data:/var/lib/postgresql/data
+  kafka-ui:
+    container_name: "kafka-ui"
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8081:8080"
+    networks:
+      - "default"
+    restart: always
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - zookeeper
+      - kafka
+
+
+volumes:
+  postgres-data:
+    driver: local
+  mp-kafka-data:
+    driver: local
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.100.0.0/24
+
+#networks:
+#  iot-pipeline:
+#    name: "iot-pipeline"
+#    driver: bridge
+#    ipam:
+#      driver: default
+#      config:
+#        - subnet: 10.5.0.0/16
+#          ip_range: 10.5.0.0/24
+#          gateway: 10.5.0.1
+#          aux_addresses:
+#            kafka: 10.5.0.2
+#            zookeeper: 10.5.0.3

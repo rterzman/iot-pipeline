@@ -1,0 +1,29 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://:@localhost:5432/iot
+    pool:
+      enabled: false
+      initial-size: 100
+      max-size: 500
+      max-idle-time: 30m
+      validation-query: SELECT 1
+    username: iot_user
+    password: password
+server:
+  port: 8084
+logging:
+  level:
+    ROOT: DEBUG
+    org.springframework.r2dbc: DEBUG
+
+springdoc:
+  swagger-ui:
+    path: /api-docs/swagger-ui.html
+  api-docs:
+    groups:
+      enabled: true
+
+query:
+  security:
+      sensors:
+        token: 9809bffb-e6c5-48fa-9444-a30fdd5da6a7

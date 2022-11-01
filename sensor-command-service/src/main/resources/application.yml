@@ -1,0 +1,33 @@
+spring:
+  kafka:
+    consumer:
+      group-id: sensors-command-eventbus-group-id # must be per instance
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    bootstrap-servers: localhost:9092 # must be overwritten by config-service
+    properties:
+      spring.json.trusted.packages: "*"
+      spring.json.remove.type.headers: true
+  r2dbc:
+    url: r2dbc:postgresql://:@localhost:5432/iot
+    pool:
+      enabled: false
+      initial-size: 100
+      max-size: 500
+      max-idle-time: 30m
+      validation-query: SELECT 1
+    username: iot_user
+    password: password
+
+command:
+  kafka:
+    eventbus:
+      sensors:
+        topic-name: iot_pipeline_data
+
+server:
+  port: 8083
+logging:
+  level:
+    org.springframework.r2dbc: DEBUG
